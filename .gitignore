@@ -1,2 +1,6 @@
+# IDE folders
 .idea
 __pycache__
+
+# Main file
+main.py
