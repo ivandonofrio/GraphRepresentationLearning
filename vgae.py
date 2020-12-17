@@ -34,10 +34,6 @@ class VGAE(nn.Module):
         self.decoder_dropout_dense = nn.Dropout(self.dropout)
         self.decoder_inner_product = InnerProductDecoder(nn.Sigmoid())
 
-        # Activation functions
-        self.relu = torch.relu
-        self.sigmoid = torch.sigmoid
-
     # VAE architecture
     def reparametrization(self, mu, log_var):
 
