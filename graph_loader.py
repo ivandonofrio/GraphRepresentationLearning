@@ -90,7 +90,7 @@ class GraphLoader:
         weight_mask = A_label.to_dense().view(-1) == 1
         weights = torch.ones(weight_mask.size(0))
         weights[weight_mask] = pos_weight
-        weights.to(self.device)
+        weights = weights.to(self.device)
 
         return (
             X,
