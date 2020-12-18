@@ -10,6 +10,8 @@ class VGAE(nn.Module):
         self.A = A
 
         # Placeholder for last latent variable
+        self.mu = None
+        self.log_var = None
         self.Z = None
 
         # Store model sizes
@@ -72,6 +74,8 @@ class VGAE(nn.Module):
         mu, log_var = self.encoder(X)
 
         # Perform reparametrization trick and store last latent variable
+        self.mu = mu
+        self.log_var = log_var
         self.Z = self.reparametrization(mu, log_var)
 
         return self.decoder(self.Z), mu, log_var
