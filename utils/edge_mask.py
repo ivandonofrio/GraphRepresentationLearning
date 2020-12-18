@@ -5,7 +5,7 @@ from utils.matrices_and_tensors import sparse_to_tuple
 
 
 # Function to build test set with 10% positive links
-def mask_test_edges(adj, labels):
+def mask_test_edges(adj):
 
     # Remove diagonal elements
     adj = adj - sp.dia_matrix((adj.diagonal()[np.newaxis, :], [0]), shape=adj.shape)
@@ -28,7 +28,6 @@ def mask_test_edges(adj, labels):
     test_edges = edges[test_edge_idx]
     val_edges = edges[val_edge_idx]
     train_edges = np.delete(edges, np.hstack([test_edge_idx, val_edge_idx]), axis=0)
-    train_labels = np.delete(labels, np.hstack([test_edge_idx, val_edge_idx]), axis=0)
 
     def ismember(a, b, tol=5):
         rows_close = np.all(np.round(a - b[:, None], tol) == 0, axis=-1)
@@ -83,4 +82,4 @@ def mask_test_edges(adj, labels):
     adj_train = adj_train + adj_train.T
 
     # NOTE: these edge lists only contain single direction of edge!
-    return adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false, train_labels
+    return adj_train, train_edges, val_edges, val_edges_false, test_edges, test_edges_false

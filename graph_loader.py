@@ -72,7 +72,7 @@ class GraphLoader:
         X = sparse_to_tensor(self.X, device=self.device)
 
         # Get training, validation and training data masking edges (t: true, f: false) to be predicted
-        A_train, E_train_t, E_val_t, E_val_f, E_test_t, E_test_f, labels = mask_test_edges(self.A, self.labels)
+        A_train, E_train_t, E_val_t, E_val_f, E_test_t, E_test_f = mask_test_edges(self.A)
 
         # Preserve initial adjacency matrix (without zeroes in diag) to evaluate reconstruction error
         A_backup = self.A - sp.dia_matrix((self.A.diagonal()[np.newaxis, :], [0]), shape=self.A.shape)
@@ -99,7 +99,7 @@ class GraphLoader:
         return (
             X,
             (A_norm, A_label, A_backup),
-            labels,
+            self.labels,
             (E_train_t, E_val_t, E_val_f, E_test_t, E_test_f),
             (norm, weights)
         )
