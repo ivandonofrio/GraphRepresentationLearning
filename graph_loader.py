@@ -99,7 +99,6 @@ class GraphLoader:
         return (
             X,
             (A_norm, A_label, A_backup),
-            self.labels,
             (E_train_t, E_val_t, E_val_f, E_test_t, E_test_f),
             (norm, weights)
         )
