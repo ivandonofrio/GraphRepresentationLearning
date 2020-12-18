@@ -17,21 +17,22 @@ class GraphLoader:
         self.device = device
 
         # Load adjacency matrix and features as tuples
-        A, X = self.load_graph()
+        A, X, labels = self.load_graph()
 
         self.A = A
         self.X = sparse_to_tuple(X)
+        self.labels = labels
 
     def load_graph(self):
 
         # Load the data: x, tx, allx, graph
         objects = []
 
-        for ext in ["x", "tx", "allx", "graph"]:
+        for ext in ["x", "tx", "allx", "graph", "labels"]:
             with open(f"graph_data/ind.{self.dataset}.{ext}", 'rb') as f:
                 objects.append(pkl.load(f, encoding='latin1'))
 
-        x, tx, allx, graph = tuple(objects)
+        x, tx, allx, graph, labels = tuple(objects)
 
         # Load test set indices
         test_idx_reorder = [int(line.strip()) for line in open(f"graph_data/ind.{self.dataset}.test.index")]
@@ -46,12 +47,15 @@ class GraphLoader:
             tx_extended[test_idx_range - min(test_idx_range), :] = tx
             tx = tx_extended
 
+        # Reorder labels
+        labels[test_idx_reorder] = labels[test_idx_range]
+
         # Get adjacency matrix and graph features
         X = sp.vstack((allx, tx)).tolil()
         X[test_idx_reorder, :] = X[test_idx_range, :]
         A = nx.adjacency_matrix(nx.from_dict_of_lists(graph))
 
-        return A, X
+        return A, X, labels
 
     def get_features_size(self):
 
@@ -68,7 +72,7 @@ class GraphLoader:
         X = sparse_to_tensor(self.X, device=self.device)
 
         # Get training, validation and training data masking edges (t: true, f: false) to be predicted
-        A_train, E_train_t, E_val_t, E_val_f, E_test_t, E_test_f = mask_test_edges(self.A)
+        A_train, E_train_t, E_val_t, E_val_f, E_test_t, E_test_f, labels = mask_test_edges(self.A, self.labels)
 
         # Preserve initial adjacency matrix (without zeroes in diag) to evaluate reconstruction error
         A_backup = self.A - sp.dia_matrix((self.A.diagonal()[np.newaxis, :], [0]), shape=self.A.shape)
@@ -95,6 +99,7 @@ class GraphLoader:
         return (
             X,
             (A_norm, A_label, A_backup),
+            labels,
             (E_train_t, E_val_t, E_val_f, E_test_t, E_test_f),
             (norm, weights)
         )
