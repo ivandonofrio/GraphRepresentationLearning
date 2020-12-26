@@ -17,21 +17,22 @@ class GraphLoader:
         self.device = device
 
         # Load adjacency matrix and features as tuples
-        A, X = self.load_graph()
+        A, X, labels = self.load_graph()
 
         self.A = A
         self.X = sparse_to_tuple(X)
+        self.labels = labels
 
     def load_graph(self):
 
         # Load the data: x, tx, allx, graph
         objects = []
 
-        for ext in ["x", "tx", "allx", "graph"]:
+        for ext in ["x", "tx", "allx", "graph", "labels"]:
             with open(f"graph_data/ind.{self.dataset}.{ext}", 'rb') as f:
                 objects.append(pkl.load(f, encoding='latin1'))
 
-        x, tx, allx, graph = tuple(objects)
+        x, tx, allx, graph, labels = tuple(objects)
 
         # Load test set indices
         test_idx_reorder = [int(line.strip()) for line in open(f"graph_data/ind.{self.dataset}.test.index")]
@@ -51,7 +52,7 @@ class GraphLoader:
         X[test_idx_reorder, :] = X[test_idx_range, :]
         A = nx.adjacency_matrix(nx.from_dict_of_lists(graph))
 
-        return A, X
+        return A, X, labels
 
     def get_features_size(self):
 
