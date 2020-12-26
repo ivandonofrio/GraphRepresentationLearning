@@ -47,9 +47,6 @@ class GraphLoader:
             tx_extended[test_idx_range - min(test_idx_range), :] = tx
             tx = tx_extended
 
-        # Reorder labels
-        labels[test_idx_reorder] = labels[test_idx_range]
-
         # Get adjacency matrix and graph features
         X = sp.vstack((allx, tx)).tolil()
         X[test_idx_reorder, :] = X[test_idx_range, :]
