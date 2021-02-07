@@ -1,7 +1,7 @@
 from layers import *
 
 
-class VGAE(nn.Module):
+class VGAE_features(nn.Module):
 
     def __init__(self, A, n, m, o, h, z, dropout=0):
         super(VGAE, self).__init__()
