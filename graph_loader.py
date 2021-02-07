@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import pickle as pkl
 import networkx as nx
+import scipy
 import scipy.sparse as sp
 
 from utils.edge_mask import mask_test_edges
