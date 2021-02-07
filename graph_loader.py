@@ -10,11 +10,12 @@ from utils.matrices_and_tensors import sparse_to_tuple, sparse_to_tensor, normal
 
 class GraphLoader:
 
-    def __init__(self, dataset="cora", device="cpu"):
+    def __init__(self, dataset="cora", task="representation_learning", device="cpu"):
 
         # Store dataset name and device on which load the data
         self.dataset = dataset
         self.device = device
+        self.task = task
 
         # Load adjacency matrix and features as tuples
         A, X, labels = self.load_graph()
@@ -28,29 +29,43 @@ class GraphLoader:
         # Load the data: x, tx, allx, graph
         objects = []
 
-        for ext in ["x", "tx", "allx", "graph", "labels"]:
-            with open(f"graph_data/representation_learning/ind.{self.dataset}.{ext}", 'rb') as f:
-                objects.append(pkl.load(f, encoding='latin1'))
+        # Load dataset for Representation Learning experiments
+        if self.task == "representation_learning":
 
-        x, tx, allx, graph, labels = tuple(objects)
+            for ext in ["x", "tx", "allx", "graph", "labels"]:
+                with open(f"graph_data/{self.task}/ind.{self.dataset}.{ext}", 'rb') as f:
+                    objects.append(pkl.load(f, encoding='latin1'))
 
-        # Load test set indices
-        test_idx_reorder = [int(line.strip()) for line in open(f"graph_data/representation_learning/ind.{self.dataset}.test.index")]
-        test_idx_range = np.sort(test_idx_reorder)
+            x, tx, allx, graph, labels = tuple(objects)
 
-        # Fix citeseer dataset (there are some isolated nodes in the graph)
-        if self.dataset == "citeseer":
+            # Load test set indices
+            test_idx_reorder = [int(line.strip()) for line in open(f"graph_data/{self.task}/ind.{self.dataset}.test.index")]
+            test_idx_range = np.sort(test_idx_reorder)
 
-            # Find isolated nodes, add them as zero-vecs into the right position
-            test_idx_range_full = range(min(test_idx_reorder), max(test_idx_reorder) + 1)
-            tx_extended = sp.lil_matrix((len(test_idx_range_full), x.shape[1]))
-            tx_extended[test_idx_range - min(test_idx_range), :] = tx
-            tx = tx_extended
+            # Fix citeseer dataset (there are some isolated nodes in the graph)
+            if self.dataset == "citeseer":
 
-        # Get adjacency matrix and graph features
-        X = sp.vstack((allx, tx)).tolil()
-        X[test_idx_reorder, :] = X[test_idx_range, :]
-        A = nx.adjacency_matrix(nx.from_dict_of_lists(graph))
+                # Find isolated nodes, add them as zero-vecs into the right position
+                test_idx_range_full = range(min(test_idx_reorder), max(test_idx_reorder) + 1)
+                tx_extended = sp.lil_matrix((len(test_idx_range_full), x.shape[1]))
+                tx_extended[test_idx_range - min(test_idx_range), :] = tx
+                tx = tx_extended
+
+            # Get adjacency matrix and graph features
+            X = sp.vstack((allx, tx)).tolil()
+            X[test_idx_reorder, :] = X[test_idx_range, :]
+            A = nx.adjacency_matrix(nx.from_dict_of_lists(graph))
+
+        # Load data for Anomaly Detection experiments
+        elif self.task == "anomaly_detection":
+
+            # Load the dataset
+            data = scipy.io.loadmat(f"graph_data/{self.task}/{self.dataset}.mat")
+
+            # Unfortunately the labels weren't chose by me...
+            X = sp.csr_matrix(data["X"])
+            A = sp.lil_matrix(data["A"])
+            labels = data["gnd"]
 
         return A, X, labels
 
