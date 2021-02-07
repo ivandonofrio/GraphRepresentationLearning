@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 import torch.nn.functional as F
 from sklearn.metrics import roc_auc_score, average_precision_score
 
@@ -16,16 +17,28 @@ def loss_function(A_rec, A, norm, weights, num_nodes, mu, log_var):
 
 
 # Reconstruction error for anomaly detection, a bit naïve
-def loss_function_naive_anomaly_detection(X_rec, A_rec, X, A, alpha):
+def loss_function_naive_anomaly_detection(X_rec, A_rec, X, A, alpha, mu, log_var):
 
-    # Reconstruction error
-    MSE_A = F.mse_loss(A_rec, A, reduction="mean")
-    MSE_X = F.mse_loss(X_rex, X, reduction="mean")
+    # Reconstruction errors and loss
+
+    #A_reconstruction_errors = torch.sqrt(torch.sum(torch.square(A_rec - A), 1))
+    #MSE_A = torch.mean(A_reconstruction_errors)
+
+    #X_reconstruction_errors = torch.sqrt(torch.sum(torch.square(X_rec - X), 1))
+    #MSE_X = torch.mean(X_reconstruction_errors)
+
+    A_reconstruction_errors = (A_rec - A).square().sum(1).sqrt()
+    MSE_A = A_reconstruction_errors.mean()
+
+    X_reconstruction_errors = (X_rec - X).square().sum(1).sqrt()
+    MSE_X = X_reconstruction_errors.mean()
+
+    MSE = alpha * MSE_X + (1 - alpha) * MSE_A
 
     # KL divergence
     KLD = (.5 / num_nodes) * (1 + 2 * log_var - mu ** 2 - log_var.exp() ** 2).sum(1).mean()
 
-    return alpha * MSE_X + (1 - alpha) * MSE_A - KLD
+    return (MSE - KLD), A_reconstruction_errors, X_reconstruction_errorsì
 
 
 def get_auc_and_ap(model, E_t, E_f):
