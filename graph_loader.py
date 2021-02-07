@@ -29,13 +29,13 @@ class GraphLoader:
         objects = []
 
         for ext in ["x", "tx", "allx", "graph", "labels"]:
-            with open(f"graph_data/ind.{self.dataset}.{ext}", 'rb') as f:
+            with open(f"graph_data/representation_learning/ind.{self.dataset}.{ext}", 'rb') as f:
                 objects.append(pkl.load(f, encoding='latin1'))
 
         x, tx, allx, graph, labels = tuple(objects)
 
         # Load test set indices
-        test_idx_reorder = [int(line.strip()) for line in open(f"graph_data/ind.{self.dataset}.test.index")]
+        test_idx_reorder = [int(line.strip()) for line in open(f"graph_data/representation_learning/ind.{self.dataset}.test.index")]
         test_idx_range = np.sort(test_idx_reorder)
 
         # Fix citeseer dataset (there are some isolated nodes in the graph)
