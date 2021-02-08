@@ -64,9 +64,9 @@ class GraphLoader:
             data = scipy.io.loadmat(f"graph_data/{self.task}/{self.dataset}.mat")
 
             # Unfortunately the labels weren't chose by me...
-            X = sp.csr_matrix(data["Attributes"])
-            A = sp.lil_matrix(data["Network"])
-            labels = data["Label"].squeeze()
+            X = sp.csr_matrix(data["X"])
+            A = sp.lil_matrix(data["A"])
+            labels = data["gnd"].squeeze()
 
         return A, X, labels
 
