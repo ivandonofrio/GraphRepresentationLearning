@@ -66,3 +66,7 @@ def get_k_accuracy_and_recall(y_pred):
     return accuracy_score(y_expected, y_pred), recall_score(y_expected, y_pred)
 
 
+def get_auc_for_anomaly_detection(y_pred, y_true):
+    return roc_auc_score(y_true, y_pred)
+
+

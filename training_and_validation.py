@@ -60,7 +60,7 @@ def test_anomaly_detection(reconstruction_errors, labels):
     
     # Sort nodes indices by decreasing reconstruction error
     worst_nodes = np.argsort(-reconstruction_errors, axis=0)
-    metrics = []
+    K_metrics = []
 
     # Evaluate metrics for different K-worst nodes
     K = [50, 100, 200, 300]
@@ -71,7 +71,7 @@ def test_anomaly_detection(reconstruction_errors, labels):
         worst_K_nodes = labels[worst_nodes[:k]]
         accuracy, recall = get_k_accuracy_and_recall(worst_K_nodes)
 
-        metrics.append({'accuracy': accuracy, 'recall': recall})
+        K_metrics.append({'accuracy': accuracy, 'recall': recall})
 
-    return dict(zip(K, metrics))
+    return dict(zip(K, K_metrics)), get_auc_for_anomaly_detection(reconstruction_errors, labels)
 
