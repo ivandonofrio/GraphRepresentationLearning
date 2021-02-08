@@ -64,9 +64,9 @@ class GraphLoader:
             data = scipy.io.loadmat(f"graph_data/{self.task}/{self.dataset}.mat")
 
             # Unfortunately the labels weren't chose by me...
-            X = sp.csr_matrix(data["X"])
-            A = sp.lil_matrix(data["A"])
-            labels = data["gnd"]
+            X = sp.csr_matrix(data["Attributes"])
+            A = sp.lil_matrix(data["Network"])
+            labels = data["Label"].squeeze()
 
         return A, X, labels
 
@@ -85,7 +85,11 @@ class GraphLoader:
         X = sparse_to_tensor(self.X, device=self.device)
 
         # Get training, validation and training data masking edges (t: true, f: false) to be predicted
-        A_train, E_train_t, E_val_t, E_val_f, E_test_t, E_test_f = mask_test_edges(self.A)
+        if self.task == "representation_learning":
+            A_train, E_train_t, E_val_t, E_val_f, E_test_t, E_test_f = mask_test_edges(self.A)
+        else:
+            A_train = E_train_t = E_val_t = E_val_f = E_test_t = E_test_f = None
+            A_train = self.A.copy()
 
         # Preserve initial adjacency matrix (without zeroes in diag) to evaluate reconstruction error
         A_backup = self.A - sp.dia_matrix((self.A.diagonal()[np.newaxis, :], [0]), shape=self.A.shape)

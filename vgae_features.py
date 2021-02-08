@@ -4,7 +4,7 @@ from layers import *
 class VGAE_features(nn.Module):
 
     def __init__(self, A, n, m, o, h, z, dropout=0):
-        super(VGAE, self).__init__()
+        super(VGAE_features, self).__init__()
 
         # Store adjacency matrix
         self.A = A
@@ -65,7 +65,7 @@ class VGAE_features(nn.Module):
         if self.training:
             Z = self.decoder_adj_dropout_dense(Z)
 
-        return self.decoder_adj_inner_product(Z), self.decoder_feat_conv(Z)
+        return self.decoder_adj_inner_product(Z), self.decoder_feat_conv(self.A, Z)
 
     def reconstruct_from_latent_space(self):
 

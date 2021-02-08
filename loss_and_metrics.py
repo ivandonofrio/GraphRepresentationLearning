@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
-from sklearn.metrics import roc_auc_score, average_precision_score
+from sklearn.metrics import roc_auc_score, average_precision_score, accuracy_score, recall_score
 
 
 # Reconstruction error + KL divergence
@@ -17,28 +17,25 @@ def loss_function(A_rec, A, norm, weights, num_nodes, mu, log_var):
 
 
 # Reconstruction error for anomaly detection, a bit naïve
-def loss_function_naive_anomaly_detection(X_rec, A_rec, X, A, alpha, mu, log_var):
+def loss_function_naive_anomaly_detection(X_rec, A_rec, X, A, alpha, num_nodes, mu, log_var):
 
     # Reconstruction errors and loss
+    A_clone = A_rec.clone().detach()
+    X_clone = X_rec.clone().detach()
 
-    #A_reconstruction_errors = torch.sqrt(torch.sum(torch.square(A_rec - A), 1))
-    #MSE_A = torch.mean(A_reconstruction_errors)
+    A_reconstruction_errors = (A_clone - A).square().sum(1).sqrt()
+    X_reconstruction_errors = (X_clone - X).square().sum(1).sqrt()
 
-    #X_reconstruction_errors = torch.sqrt(torch.sum(torch.square(X_rec - X), 1))
-    #MSE_X = torch.mean(X_reconstruction_errors)
-
-    A_reconstruction_errors = (A_rec - A).square().sum(1).sqrt()
-    MSE_A = A_reconstruction_errors.mean()
-
-    X_reconstruction_errors = (X_rec - X).square().sum(1).sqrt()
-    MSE_X = X_reconstruction_errors.mean()
+    MSE_A = (A_rec - A).square().sum(1).sqrt().mean()
+    MSE_X = (X_rec - X).square().sum(1).sqrt().mean()
 
     MSE = alpha * MSE_X + (1 - alpha) * MSE_A
+    reconstruction_errors = X_reconstruction_errors.mul(alpha) + A_reconstruction_errors.mul(1 - alpha)
 
     # KL divergence
     KLD = (.5 / num_nodes) * (1 + 2 * log_var - mu ** 2 - log_var.exp() ** 2).sum(1).mean()
 
-    return (MSE - KLD), A_reconstruction_errors, X_reconstruction_errorsì
+    return (MSE - KLD), reconstruction_errors
 
 
 def get_auc_and_ap(model, E_t, E_f):
@@ -59,3 +56,13 @@ def get_auc_and_ap(model, E_t, E_f):
     labels = np.hstack([np.ones(len(positive_pred)), np.zeros(len(negative_pred))])
 
     return roc_auc_score(labels, predictions), average_precision_score(labels, predictions)
+
+
+def get_k_accuracy_and_recall(y_pred):
+
+    # Generate an array of ones to compare the predictions
+    y_expected = np.ones_like(y_pred)
+
+    return accuracy_score(y_expected, y_pred), recall_score(y_expected, y_pred)
+
+
