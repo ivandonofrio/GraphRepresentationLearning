@@ -25,7 +25,7 @@ def train(model, optimizer, X, A, norm, weights, n):
     return loss.item()
 
 
-def train_anomaly_detection(model, optimizer, X, A, weights, norm, n):
+def train_anomaly_detection(model, optimizer, X, A, weights, norm, n, alpha=0.5):
 
     # Set the VGAE to be trained
     model.train()
@@ -37,7 +37,7 @@ def train_anomaly_detection(model, optimizer, X, A, weights, norm, n):
     A_rec, X_rec, mu, log_var = model(X)
 
     # MSE + KLD loss
-    loss, reconstruction_errors = loss_function_naive_anomaly_detection(X_rec, A_rec, X, A.to_dense(), .5, num_nodes, mu, log_var)
+    loss, reconstruction_errors = loss_function_naive_anomaly_detection(X_rec, A_rec, X, A.to_dense(), alpha, num_nodes, mu, log_var)
     local_reconstruction_errors = reconstruction_errors.cpu().numpy()
 
     # Optimization step
